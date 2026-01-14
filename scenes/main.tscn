@@ -1,11 +1,22 @@
-[gd_scene load_steps=4 format=3 uid="uid://crgh08u2ldben"]
+[gd_scene load_steps=8 format=3 uid="uid://crgh08u2ldben"]
 
 [ext_resource type="PackedScene" uid="uid://ctjg73w1als1h" path="res://scenes/Player.tscn" id="1_o5qli"]
+[ext_resource type="Texture2D" uid="uid://urbagiocr06a" path="res://assets/environment/qwantani_moon_noon_puresky_4k.exr" id="2_0wfyh"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_sgp6g"]
 size = Vector3(20, 1, 20)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_o5qli"]
+
+[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_o5qli"]
+panorama = ExtResource("2_0wfyh")
+
+[sub_resource type="Sky" id="Sky_0wfyh"]
+sky_material = SubResource("PanoramaSkyMaterial_o5qli")
+
+[sub_resource type="Environment" id="Environment_o5qli"]
+background_mode = 2
+sky = SubResource("Sky_0wfyh")
 
 [node name="Main" type="Node3D"]
 
@@ -31,5 +42,8 @@ transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0
 [node name="Camera3D" type="Camera3D" parent="PlayerBody/CameraPivot" index="0"]
 transform = Transform3D(0.92591673, 0.12919046, -0.3549479, 8.881784e-16, 0.9396927, 0.3420201, 0.37772766, -0.31668216, 0.87007713, -1.2562413, 2.6161597, 3.442393)
 current = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_o5qli")
 
 [editable path="PlayerBody"]
