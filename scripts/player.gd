@@ -1,13 +1,14 @@
 extends CharacterBody3D
 
-@onready var camera_pivot := $CameraPivot
+@export var speed := 5.5
+@export var gravity := 20.0
+@export var jump_velocity := 6.0
+@export var mouse_sensitivity := 0.003
+@export var pitch_sensitivity := 0.003
 
-const SPEED := 5.0
-const JUMP_VELOCITY := 4.5
-const ROTATION_SPEED := 10.0
-const MOUSE_SENSITIVITY := 0.003
+@onready var camera: Camera3D = $CameraPivot/Camera3D
 
-var camera_pitch := -0.3
+var camera_pitch := 0.0
 
 
 func _ready() -> void:
@@ -16,25 +17,20 @@ func _ready() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
-		# Rotate player left/right with mouse
-		rotation.y -= event.relative.x * MOUSE_SENSITIVITY
+		# Rotate player (yaw)
+		rotation.y -= event.relative.x * mouse_sensitivity
 
-		# Tilt camera up/down
-		camera_pitch -= event.relative.y * MOUSE_SENSITIVITY
+		# Rotate camera (pitch only)
+		camera_pitch -= event.relative.y * pitch_sensitivity
 		camera_pitch = clamp(camera_pitch, -1.2, 0.3)
-		camera_pivot.rotation.x = camera_pitch
+		camera.rotation.x = camera_pitch
+
+	elif event.is_action_pressed("ui_cancel"):
+		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
 
 func _physics_process(delta: float) -> void:
-	# Gravity
-	if not is_on_floor():
-		velocity += get_gravity() * delta
-
-	# Jump
-	if Input.is_action_just_pressed("ui_accept") and is_on_floor():
-		velocity.y = JUMP_VELOCITY
-
-	# Movement input (WASD)
+	# --- INPUT ---
 	var input_dir := Input.get_vector(
 		"move_left",
 		"move_right",
@@ -42,18 +38,17 @@ func _physics_process(delta: float) -> void:
 		"move_backward"
 	)
 
-	# Camera-relative movement direction
-	var cam_basis: Basis = camera_pivot.global_transform.basis
-	var direction := cam_basis.x * input_dir.x + cam_basis.z * input_dir.y
-	direction.y = 0
+	# --- SIMPLE, RELIABLE MOVEMENT ---
+	var direction := (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
+	velocity.x = direction.x * speed
+	velocity.z = direction.z * speed
 
-	if direction.length() > 0.01:
-		direction = direction.normalized()
+	# --- GRAVITY ---
+	if not is_on_floor():
+		velocity.y -= gravity * delta
 
-		velocity.x = direction.x * SPEED
-		velocity.z = direction.z * SPEED
-	else:
-		velocity.x = move_toward(velocity.x, 0, SPEED)
-		velocity.z = move_toward(velocity.z, 0, SPEED)
+	# --- JUMP ---
+	if Input.is_action_just_pressed("ui_accept") and is_on_floor():
+		velocity.y = jump_velocity
 
 	move_and_slide()
